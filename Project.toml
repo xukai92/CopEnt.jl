@@ -1,7 +1,7 @@
 name = "CopEnt"
 uuid = "3d58aee0-59b1-4d68-b4d3-acbeec332be7"
 authors = ["Kai Xu <xukai921110@gmail.com>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
