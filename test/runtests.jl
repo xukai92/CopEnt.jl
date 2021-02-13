@@ -1,6 +1,23 @@
 using Test, CopEnt
+using LinearAlgebra: det
 
-@testset "Validating against pycopent" begin
+@testset "Entropy of univraite normal" begin
+    for σ in [1, 2, 3]
+        x = randn(1_000) * σ
+        ent = 1 / 2 * log(2 * π * ℯ * σ^2)
+        @test entropy_knn(x) ≈ ent atol=0.1
+    end
+end
+
+@testset "Entropy of bivariate normal" begin
+    for σ1 in [1, 2, 3], σ2 in [1, 2, 3]
+        x = randn(2, 1_000) .* [σ1, σ2] 
+        ent = 1 / 2 * log(det(2 * π * ℯ * [σ1^2 0; 0 σ2^2]))
+        @test entropy_knn(x) ≈ ent atol=0.1
+    end
+end
+
+@testset "Checking against pycopent" begin
     x = hcat(
         [-0.89395472, -1.48611224],
         [ 0.82243227, -1.5848612 ],

@@ -20,6 +20,16 @@ function empirical_copula(x::AbstractMatrix)
     return c
 end
 
+function _entropy_knn_info(x::AbstractVector, dist)
+    pwd = pairwise(dist, x)
+    return 1, length(x), pwd
+end
+function _entropy_knn_info(x::AbstractMatrix, dist)
+    d, n = size(x)
+    pwd = pairwise(dist, x, dims=2)
+    return d, n, pwd
+end
+
 _entropy_knn_constant(::Euclidean, d) = 
     d * log(π) / 2 - d * log(2) - first(logabsgamma(1 + d / 2))
 _entropy_knn_constant(::Chebyshev, d) = 0
@@ -33,9 +43,10 @@ Estimate the entropy using the Kraskov method [1]
 
 1. Alexander Kraskov, Harald Stögbauer and Peter Grassberger. "Estimating mutual information." Physical review, 2004.
 """
-function entropy_knn(x; k::Int=3, dist::Union{Euclidean, Chebyshev}=Euclidean())
-    d, n = size(x)
-    pwd = pairwise(dist, x, dims=2)
+function entropy_knn(
+    x::AbstractVecOrMat; k::Int=3, dist::Union{Euclidean, Chebyshev}=Euclidean()
+)
+    d, n, pwd = _entropy_knn_info(x, dist)
     logd = map(1:n) do i
         log(2 * sort(pwd[i,:])[k+1])
     end |> sum
@@ -57,7 +68,7 @@ The returned copula entropy is the negative mutual information [2].
 1. Alexander Kraskov, Harald Stögbauer and Peter Grassberger. "Estimating mutual information." Physical review, 2004.
 2. Jian Ma and Zengqi Sun. "Mutual information is copula entropy." Tsinghua Science & Technology, 2011.
 """
-function copula_entropy(x; kwargs...)
+function copula_entropy(x::AbstractVecOrMat; kwargs...)
     c = empirical_copula(x)
     return entropy_knn(c; kwargs...)
 end
