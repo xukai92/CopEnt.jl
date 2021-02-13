@@ -10,10 +10,12 @@ The function `copula_entropy` in the package *indeed* returns the copula entropy
 
 ```julia
 using Distributions, CopEnt
-μ = zeros(2)
 ρ = 0.6
+μ = zeros(2)
 Σ = [1 ρ; ρ 1]
 x = rand(MvNormal(μ, Σ), 2_000)
 mi = -copent(x) # this gives us 0.1849467947096306
                 # true value is 0.2231435513142097
 ```
+
+Also see the [example notebook](docs/example.ipynb) for some visualizations.
