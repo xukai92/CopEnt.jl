@@ -5,13 +5,19 @@ using SpecialFunctions: logabsgamma, digamma
 using Distances: pairwise, Euclidean, Chebyshev
 using StatsBase: tiedrank
 
+abstract type AbstractCDF end
+struct NonParametricCDF <: AbstractCDF end
+
+univraite_cdf(x::AbstractVecOrMat) = 
+    univraite_cdf(NonParametricCDF(), x)
+
 """
 $(SIGNATURES)
 
-Compute the emperical copula.
+Emperical estimation of univraite cumulative distribution function values.
 """
-empirical_copula(x::AbstractVector) = tiedrank(x) / length(x)
-function empirical_copula(x::AbstractMatrix)
+univraite_cdf(::NonParametricCDF, x::AbstractVector) = tiedrank(x) / length(x)
+function univraite_cdf(::NonParametricCDF,x::AbstractMatrix)
     d, n = size(x)
     c = similar(x)
     for i in 1:d
@@ -44,7 +50,7 @@ Estimate the entropy using the Kraskov method [1]
 1. Alexander Kraskov, Harald Stögbauer and Peter Grassberger. "Estimating mutual information." Physical review, 2004.
 """
 function entropy_knn(
-    x::AbstractVecOrMat; k::Int=3, dist::Union{Euclidean, Chebyshev}=Euclidean()
+    x::AbstractVecOrMat; k=3, dist=Euclidean()
 )
     d, n, pwd = _entropy_knn_info(x, dist)
     logd = map(1:n) do i
@@ -58,7 +64,7 @@ $(SIGNATURES)
 
 Estimate the copula entropy by
 
-1. Compute the emperical copula (see also [`empirical_copula`](@ref));
+1. Compute the emperical copula (see also [`univraite_cdf`](@ref));
 2. Estimate the entropy using the Kraskov method (see [`entropy_knn`](@ref) for keyword parameters) [1].
 
 The returned copula entropy is the negative mutual information [2].
@@ -68,12 +74,13 @@ The returned copula entropy is the negative mutual information [2].
 1. Alexander Kraskov, Harald Stögbauer and Peter Grassberger. "Estimating mutual information." Physical review, 2004.
 2. Jian Ma and Zengqi Sun. "Mutual information is copula entropy." Tsinghua Science & Technology, 2011.
 """
-function copula_entropy(x::AbstractVecOrMat; kwargs...)
-    c = empirical_copula(x)
-    return entropy_knn(c; kwargs...)
+function copula_entropy(x::AbstractVecOrMat; cdf=NonParametricCDF(), k=3, dist=Euclidean())
+    c = univraite_cdf(cdf, x)
+    return entropy_knn(c; k=k, dist=dist)
 end
 
-export empirical_copula, entropy_knn, copula_entropy
+export univraite_cdf, entropy_knn, copula_entropy
+export NonParametricCDF
 export Euclidean, Chebyshev # reexport two distance structs
 
 end # module
