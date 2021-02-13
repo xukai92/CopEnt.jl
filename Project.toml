@@ -1,0 +1,10 @@
+name = "CopEnt"
+uuid = "3d58aee0-59b1-4d68-b4d3-acbeec332be7"
+authors = ["Kai Xu <xukai921110@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
