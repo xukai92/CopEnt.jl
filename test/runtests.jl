@@ -1,4 +1,5 @@
 using Test, CopEnt
+using CopEnt: univraite_cdf, entropy_knn
 using LinearAlgebra: det
 
 @testset "Entropy of univraite normal" begin
@@ -31,7 +32,7 @@ end
         [-0.48603486, -1.84245597],
     )
 
-    cpy = hcat(
+    upy = hcat(
         [0.3, 0.3],
         [1. , 0.2],
         [0.2, 0.7],
@@ -48,7 +49,7 @@ end
     copentpy_euclidean = 0.7167856845750248
     copentpy_chebyshev = 0.6760921005096859
 
-    @test empirical_copula(x) == cpy
+    @test univraite_cdf(x) == upy
     @test entropy_knn(x; dist=Euclidean()) ≈ entpy_euclidean
     @test entropy_knn(x; dist=Chebyshev()) ≈ entpy_chebyshev
     @test copula_entropy(x; dist=Euclidean()) ≈ copentpy_euclidean

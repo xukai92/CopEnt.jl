@@ -8,8 +8,8 @@ using StatsBase: tiedrank
 abstract type AbstractCDF end
 struct NonParametricCDF <: AbstractCDF end
 
-univraite_cdf(x::AbstractVecOrMat) = 
-    univraite_cdf(NonParametricCDF(), x)
+univraite_cdf(x::AbstractVecOrMat) = univraite_cdf(NonParametricCDF(), x)
+multivariate_cdf(x::AbstractMatrix) = multivariate_cdf(NonParametricCDF(), x)
 
 """
 $(SIGNATURES)
@@ -26,11 +26,26 @@ function univraite_cdf(::NonParametricCDF,x::AbstractMatrix)
     return c
 end
 
-function _entropy_knn_info(x::AbstractVector, dist)
+"""
+$(SIGNATURES)
+
+Emperical estimation of multivariate cumulative distribution function values.
+"""
+function multivariate_cdf(::NonParametricCDF, x::AbstractMatrix)
+    d, n = size(x)
+    u = zeros(n)
+    for i in 1:n
+        v = prod(x .<= x[:,i], dims=1)
+        u[i] = sum(v)
+    end
+    return u / n
+end
+
+function _entropy_knn_info(dist, x::AbstractVector)
     pwd = pairwise(dist, x)
     return 1, length(x), pwd
 end
-function _entropy_knn_info(x::AbstractMatrix, dist)
+function _entropy_knn_info(dist, x::AbstractMatrix)
     d, n = size(x)
     pwd = pairwise(dist, x, dims=2)
     return d, n, pwd
@@ -49,10 +64,8 @@ Estimate the entropy using the Kraskov method [1]
 
 1. Alexander Kraskov, Harald Stögbauer and Peter Grassberger. "Estimating mutual information." Physical review, 2004.
 """
-function entropy_knn(
-    x::AbstractVecOrMat; k=3, dist=Euclidean()
-)
-    d, n, pwd = _entropy_knn_info(x, dist)
+function entropy_knn(x::AbstractVecOrMat; k=3, dist=Euclidean())
+    d, n, pwd = _entropy_knn_info(dist, x)
     logd = map(1:n) do i
         log(2 * sort(pwd[i,:])[k+1])
     end |> sum
@@ -74,12 +87,20 @@ The returned copula entropy is the negative mutual information [2].
 1. Alexander Kraskov, Harald Stögbauer and Peter Grassberger. "Estimating mutual information." Physical review, 2004.
 2. Jian Ma and Zengqi Sun. "Mutual information is copula entropy." Tsinghua Science & Technology, 2011.
 """
-function copula_entropy(x::AbstractVecOrMat; cdf=NonParametricCDF(), k=3, dist=Euclidean())
+function copula_entropy(x::AbstractVecOrMat; cdf=NonParametricCDF(), kwargs...)
     c = univraite_cdf(cdf, x)
-    return entropy_knn(c; k=k, dist=dist)
+    return entropy_knn(c; kwargs...)
+end
+function copula_entropy(
+    x::AbstractMatrix, y::AbstractMatrix; cdf=NonParametricCDF(), kwargs...
+)
+    cx = multivariate_cdf(cdf, x)
+    cy = multivariate_cdf(cdf, y)
+    c = vcat(cx', cy')
+    return entropy_knn(c; kwargs...)
 end
 
-export univraite_cdf, entropy_knn, copula_entropy
+export copula_entropy
 export NonParametricCDF
 export Euclidean, Chebyshev # reexport two distance structs
 
